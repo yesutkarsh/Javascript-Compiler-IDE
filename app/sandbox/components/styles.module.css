@@ -1,0 +1,165 @@
+.wrapper {
+    display: grid;
+    margin: 20px;
+    height: 95vh;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    gap: 20px;
+    /* background: #f8f9fc; */
+    padding: 20px;
+    border-radius: 30px;
+    /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); */
+}
+
+.terminal, 
+.codeEditor {
+    width: 100%;
+    height: 100%;
+    min-height: 350px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.terminal {
+    background: linear-gradient(145deg, #1a1b1f, #2a2b2f);
+    color: #7fffd4;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    padding: 30px;
+    overflow: auto;
+    position: relative;
+}
+
+.terminal::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    display: flex;
+    gap: 8px;
+}
+
+.terminal::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    width: 65px;
+    height: 12px;
+    background: linear-gradient(90deg,
+        #ff5f56 0 12px,
+        transparent 12px 25px,
+        #ffbd2e 25px 37px,
+        transparent 37px 50px,
+        #27c93f 50px 62px
+    );
+    border-radius: 6px;
+}
+
+.codeEditor {
+    background: white;
+    padding: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.terminal::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.terminal::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.terminal::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.terminal::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+
+
+/* Add hover effects */
+.terminal:hover,
+.codeEditor:hover {
+    transform: translateY(-2px);
+    /* box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); */
+}
+
+/* Add glass morphism effect to code editor */
+@supports (backdrop-filter: blur(10px)) {
+    .codeEditor {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+    }
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .wrapper {
+        margin: 10px;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .terminal, 
+    .codeEditor {
+        border-radius: 20px;
+        min-height: 300px;
+    }
+}
+
+
+
+
+
+
+
+/* Control */
+/* run clean clear */
+.control{
+    background-color: #1e1e1e;
+    position: absolute;
+    z-index: 98;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    color: white;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    width: 350px;
+    border: 1px solid rgba(0, 0, 0, 0.137);
+}
+
+.control span{
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-size: 10px;
+    color: #e4e4e4;
+    align-items: center;
+    width: 100%;
+}
+.control span i{
+    font-size: 25px;
+}
+
+.control span:nth-child(1) i{
+    color: #269436;
+}
