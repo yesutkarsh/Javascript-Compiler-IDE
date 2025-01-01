@@ -3,8 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import Editor from '@monaco-editor/react';
 import Settings from "./EditorSettings/Setting";
+import SandboxWorker from '../sandboxWorker.worker';
+
 
 export default function SandBox() {
+
+    
     const editorRef = useRef(null);
     const containerRef = useRef(null);
     const [showSettings, setShowSettings] = useState(false);
@@ -29,40 +33,32 @@ export default function SandBox() {
 
     // Run Code
     function runCode() {
-        try {
-            // Retrieve the code from Monaco Editor
-            let code = editorRef.current.getValue();
-    
-            // Capture output using a custom function
-            let output;
-            const log = (value) => (output = value);
-    
-            // Wrap the code to intercept console.log and return the output
-            const wrappedCode = `
-                (function() {
-                    const consoleLog = console.log;
-                    console.log = log;
-                    ${code};
-                    console.log = consoleLog;
-                    return output;
-                })()
-            `;
-    
-            // Use eval to execute the wrapped code
-            output = eval(wrappedCode);
-    
-            // Display the output in the terminal
-            if (output === undefined) {
-                setTerminalOutput("No output or value is undefined");
-            } else {
-                setTerminalOutput(output.toString());
-            }
-        } catch (error) {
-            setTerminalOutput(`Error: ${error.message}`);
+        const code = editorRef.current?.getValue();
+        if (!code) {
+            setTerminalOutput("No code to execute.");
+            return;
         }
+        const worker = new SandboxWorker();
+        worker.postMessage(code);
+    
+        worker.onmessage = (e) => {
+            const { type, data } = e.data;
+            if (type === 'success') {
+                setTerminalOutput(data);
+            } else if (type === 'error') {
+                setTerminalOutput(`Error: ${data}`);
+            }
+        };
+    
+        worker.onerror = (error) => {
+            setTerminalOutput(`Worker Error: ${error.message}`);
+        };
+    
+        worker.onmessageerror = () => {
+            setTerminalOutput("Message error in worker.");
+        };
     }
     
-
     // Load Editor Settings from Local Storage
     useEffect(() => {
         const configuration = localStorage.getItem("editorSettings");
@@ -92,7 +88,10 @@ export default function SandBox() {
     return (
         <>
             {showSettings && <Settings onClose={() => setShowSettings(false)} />}
-            <div className={styles.control}>
+            <div style={{
+                        backgroundColor: editorSettings?.theme === "light" ? "white" : "black",
+                        color: editorSettings?.theme === "light" ? "black" : "white",
+                    }} className={styles.control}>
                 <span onClick={runCode}>
                     <i className="ri-play-circle-fill"></i> Run Code
                 </span>
@@ -108,10 +107,12 @@ export default function SandBox() {
             </div>
 
             <div className={styles.wrapper}>
-                <div className={styles.terminal}>{terminalOutput}</div>
+                <div  style={{
+                        background: editorSettings?.theme === "light" ? "white" : "linear-gradient(145deg, #1a1b1f, #2a2b2f)",
+                    }} className={styles.terminal}>{terminalOutput}</div>
                 <div
                     style={{
-                        backgroundColor: editorSettings?.theme === "vs-dark" ? "#1e1e1e" : "white",
+                        backgroundColor: editorSettings?.theme === "light" ? "white" : "#1e1e1e",
                     }}
                     className={styles.codeEditor}
                     ref={containerRef}
@@ -121,7 +122,7 @@ export default function SandBox() {
                         height="400px"
                         value={defaultValue}
                         language="javascript"
-                        theme={editorSettings?.theme || "light"}
+                        theme={editorSettings?.theme || "vs-dark"}
                         onMount={handleEditorDidMount}
                         options={{
                             ...editorSettings,
