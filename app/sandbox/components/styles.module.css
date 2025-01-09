@@ -10,6 +10,8 @@
     /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); */
 }
 
+
+
 .terminal, 
 .codeEditor {
     width: 100%;
@@ -91,11 +93,10 @@
 
 
 /* Add hover effects */
-.terminal:hover,
+/* .terminal:hover,
 .codeEditor:hover {
     transform: translateY(-2px);
-    /* box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); */
-}
+} */
 
 /* Add glass morphism effect to code editor */
 @supports (backdrop-filter: blur(10px)) {
@@ -133,15 +134,16 @@
     background-color: #1e1e1e;
     position: absolute;
     z-index: 98;
-    top: 45%;
+    top: 30%;
     transform: translate(-50%, -50%);
     left: 50%;
     padding: 10px;
     border-radius: 12px;
     display: flex;
+    flex-direction: column;
     justify-content: space-around;
     gap: 20px;
-    width: 350px;
+    width: 65px;
     border: 1px solid rgba(0, 0, 0, 0.137);
 }
 
@@ -149,11 +151,15 @@
     .control {
         flex-direction: column;
         width: 70px;
-        left: 80%;
-        top: 80%;
+        left: 85%;
+        top: 50%;
         border: 1px solid rgba(0, 0, 0, 0.192);
     }
   }
+
+
+
+ 
 
 .control span{
     font-weight: 400;
@@ -170,4 +176,20 @@
 
 .control span:nth-child(1) i{
     color: #269436;
+}
+
+
+
+@media only screen and (min-width: 705px) {
+    .wrapper{
+        grid-template-columns: 1fr 1fr;
+    }
+    .codeEditor{
+        height: 100%;
+    }
+    .Monacoeditor{
+        height: 100%;
+    }
+        
+
 }

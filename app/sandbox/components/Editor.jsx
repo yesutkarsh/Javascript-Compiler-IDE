@@ -119,7 +119,7 @@ export default function SandBox() {
                 >
                     <Editor
                         className={styles.Monacoeditor}
-                        height="400px"
+                        height="100%"
                         value={defaultValue}
                         language="javascript"
                         theme={editorSettings?.theme || "vs-dark"}
