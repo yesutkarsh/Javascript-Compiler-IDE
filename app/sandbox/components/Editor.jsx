@@ -4,40 +4,39 @@ import styles from "./styles.module.css";
 import Editor from '@monaco-editor/react';
 import Settings from "./EditorSettings/Setting";
 import SandboxWorker from '../sandboxWorker.worker';
-
+import { 
+  RiPlayFill, RiTerminalLine, RiSettings3Line, 
+  RiCloseCircleLine, RiArrowUpLine, RiRefreshLine,
+  RiTerminalBoxLine
+} from 'react-icons/ri';
 
 export default function SandBox() {
-
-    
     const editorRef = useRef(null);
-    const containerRef = useRef(null);
     const [showSettings, setShowSettings] = useState(false);
     const [editorSettings, setEditorSettings] = useState(null);
-    const [defaultValue, setDefaultValue] = useState("// Start Writing Code ...");
-    const [terminalOutput, setTerminalOutput] = useState("Nothing To Show Here");
+    const [defaultValue] = useState("// Start coding...");
+    const [terminalOutput, setTerminalOutput] = useState("> Ready to execute code...");
+    const [showMobileTerminal, setShowMobileTerminal] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
-    // Resetting Editor
-    function resetCodeEditor() {
-        setDefaultValue("// Start Fresh");
-    }
-
-    // Clear Terminal
-    function clearTerminal() {
-        setTerminalOutput("Nothing To Show Here");
-    }
-
-    // Handle Editor Mount
-    function handleEditorDidMount(editor) {
-        editorRef.current = editor;
-    }
+    // Detect mobile view
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Run Code
     function runCode() {
         const code = editorRef.current?.getValue();
         if (!code) {
-            setTerminalOutput("No code to execute.");
+            setTerminalOutput("> No code to execute");
             return;
         }
+        
+        if (isMobile) setShowMobileTerminal(true);
+        
         const worker = new SandboxWorker();
         worker.postMessage(code);
     
@@ -53,84 +52,148 @@ export default function SandBox() {
         worker.onerror = (error) => {
             setTerminalOutput(`Worker Error: ${error.message}`);
         };
-    
-        worker.onmessageerror = () => {
-            setTerminalOutput("Message error in worker.");
-        };
     }
-    
-    // Load Editor Settings from Local Storage
-    useEffect(() => {
-        const configuration = localStorage.getItem("editorSettings");
-        if (configuration) {
-            setEditorSettings(JSON.parse(configuration));
-        }
-    }, []);
 
-    // Listen for Storage Changes
-    useEffect(() => {
-        const handleStorageChange = () => {
-            const configuration = localStorage.getItem("editorSettings");
-            if (configuration) {
-                setEditorSettings(JSON.parse(configuration));
-            }
-        };
+    // Reset Editor
+    function resetCodeEditor() {
+        editorRef.current?.setValue("// Start fresh...");
+    }
 
-        window.addEventListener("storage", handleStorageChange);
-        window.addEventListener("settingsChanged", handleStorageChange);
+    // Clear Terminal
+    function clearTerminal() {
+        setTerminalOutput("> Terminal cleared");
+    }
 
-        return () => {
-            window.removeEventListener("storage", handleStorageChange);
-            window.removeEventListener("settingsChanged", handleStorageChange);
-        };
-    }, []);
+    // Handle Editor Mount
+    function handleEditorDidMount(editor) {
+        editorRef.current = editor;
+    }
+
+    // Load Editor Settings
+  // In SandBox component
+useEffect(() => {
+    const handleStorageChange = () => {
+        const config = localStorage.getItem("editorSettings");
+        if (config) setEditorSettings(JSON.parse(config));
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+}, []);
 
     return (
-        <>
+        <div className={styles.vsCodeContainer}>
             {showSettings && <Settings onClose={() => setShowSettings(false)} />}
-            <div style={{
-                        backgroundColor: editorSettings?.theme === "light" ? "white" : "black",
-                        color: editorSettings?.theme === "light" ? "black" : "white",
-                    }} className={styles.control}>
-                <span onClick={runCode}>
-                    <i className="ri-play-circle-fill"></i> Run Code
-                </span>
-                <span onClick={resetCodeEditor}>
-                    <i className="ri-code-line"></i> Clear Editor
-                </span>
-                <span onClick={clearTerminal}>
-                    <i className="ri-terminal-line"></i> Clear Terminal
-                </span>
-                <span onClick={() => setShowSettings(true)}>
-                    <i className="ri-settings-line"></i> Editor Settings
-                </span>
+            
+            {/* Toolbar */}
+            <div className={styles.toolbar}>
+                <div className={styles.toolbarLeft}>
+                    <button onClick={runCode} className={styles.toolbarButton}>
+                        <RiPlayFill className={styles.toolbarIcon} />
+                        <span>Run</span>
+                    </button>
+                    <button onClick={resetCodeEditor} className={styles.toolbarButton}>
+                        <RiRefreshLine className={styles.toolbarIcon} />
+                        <span>Reset</span>
+                    </button>
+                    <button onClick={clearTerminal} className={styles.toolbarButton}>
+                        <RiTerminalBoxLine className={styles.toolbarIcon} />
+                        <span>Clear</span>
+                    </button>
+                </div>
+                {/* <div className={styles.toolbarRight}>
+                    <button 
+                        onClick={() => setShowSettings(true)}
+                        className={styles.toolbarButton}
+                    >
+                        <RiSettings3Line className={styles.toolbarIcon} />
+                        <span>Settings</span>
+                    </button>
+                </div> */}
             </div>
 
-            <div className={styles.wrapper}>
-                <div  style={{
-                        background: editorSettings?.theme === "light" ? "white" : "linear-gradient(145deg, #1a1b1f, #2a2b2f)",
-                    }} className={styles.terminal}>{terminalOutput}</div>
-                <div
+            {/* Editor & Terminal Container */}
+            <div className={styles.editorContainer}>
+                {/* Code Editor */}
+                <div className={styles.editorWrapper}
                     style={{
-                        backgroundColor: editorSettings?.theme === "light" ? "white" : "#1e1e1e",
-                    }}
-                    className={styles.codeEditor}
-                    ref={containerRef}
-                >
+                        backgroundColor: editorSettings?.theme === 'light' 
+                            ? '#ffffff' 
+                            : '#1e1e1e',
+                    }}>
+                    <div className={styles.editorHeader}>
+                        <span className={styles.tab}>index.js</span>
+                        {/* <div className={styles.windowControls}>
+                            <span className={styles.controlDot} style={{ backgroundColor: '#ff5f56' }} />
+                            <span className={styles.controlDot} style={{ backgroundColor: '#ffbd2e' }} />
+                            <span className={styles.controlDot} style={{ backgroundColor: '#27c93f' }} />
+                        </div> */}
+                    </div>
                     <Editor
-                        className={styles.Monacoeditor}
-                        height="100%"
+                        height="calc(100% - 35px)"
                         value={defaultValue}
                         language="javascript"
-                        theme={editorSettings?.theme || "vs-dark"}
+                        theme={editorSettings?.theme || 'vs-dark'}
                         onMount={handleEditorDidMount}
                         options={{
                             ...editorSettings,
+                            minimap: { enabled: true },
+                            fontSize: 14,
+                            lineNumbers: 'on',
                             automaticLayout: true,
                         }}
                     />
                 </div>
+
+                {/* Desktop Terminal */}
+                {!isMobile && (
+                    <div className={styles.terminalWrapper}>
+                        <div className={styles.terminalHeader}>
+                            <RiTerminalLine className={styles.terminalIcon} />
+                            <span>Terminal</span>
+                            <button 
+                                onClick={clearTerminal}
+                                className={styles.terminalClearButton}
+                            >
+                                {/* <RiCloseCircleLine /> */}
+                            </button>
+                        </div>
+                        <pre className={styles.terminalContent}>
+                            {terminalOutput}
+                        </pre>
+                    </div>
+                )}
             </div>
-        </>
+
+            {/* Mobile Terminal Toggle */}
+            {isMobile && !showMobileTerminal && (
+                <button 
+                    className={styles.mobileTerminalToggle}
+                    onClick={() => setShowMobileTerminal(true)}
+                >
+                    <RiTerminalLine />
+                    <span>Show Terminal</span>
+                </button>
+            )}
+
+            {/* Mobile Terminal Modal */}
+            {isMobile && showMobileTerminal && (
+                <div className={styles.mobileTerminal}>
+                    <div className={styles.terminalHeader}>
+                        <RiTerminalLine className={styles.terminalIcon} />
+                        <span>Terminal</span>
+                        <button 
+                            onClick={() => setShowMobileTerminal(false)}
+                            className={styles.terminalClose}
+                        >
+                            <RiArrowUpLine />
+                        </button>
+                    </div>
+                    <pre className={styles.terminalContent}>
+                        {terminalOutput}
+                    </pre>
+                </div>
+            )}
+        </div>
     );
 }

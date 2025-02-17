@@ -3,26 +3,37 @@ self.onmessage = function (e) {
         const outputs = [];
         const originalLog = console.log;
 
-        // Override console.log to capture logs
+        // Override console methods to capture output
         console.log = (...args) => {
-            outputs.push(args.map(arg =>
-                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            outputs.push(args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
             ).join(' '));
         };
 
-        // Execute the received code
-        const result = eval(e.data);
+        // Execute code with line breaks
+        const code = `(function() { 
+            ${e.data} 
+        })()`;
+        
+        const result = eval(code);
 
-        // Restore console.log
+        // Restore original console
         console.log = originalLog;
 
-        // Append the result if not undefined
-        if (result !== undefined) outputs.push(String(result));
+        // Handle the result
+        let finalOutput = outputs.join('\n');
+        if (result !== undefined) {
+            finalOutput += `\n${String(result)}`;
+        }
 
-        // Send the result back to the main thread
-        self.postMessage({ type: 'success', data: outputs.join('\n') });
+        self.postMessage({ 
+            type: 'success', 
+            data: finalOutput 
+        });
     } catch (err) {
-        // Handle errors and send back to the main thread
-        self.postMessage({ type: 'error', data: err.message });
+        self.postMessage({ 
+            type: 'error', 
+            data: `${err.name}: ${err.message}\n${err.stack}` 
+        });
     }
 };
